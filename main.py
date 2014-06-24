@@ -31,8 +31,16 @@ def main():
     # connect the server
     couch = couchdb.Server(DBADDRESS)
 
-    # connect the database
-    db = couch[DBNAME]
+    # check whether the db exists
+    isExist = False
+    for db in couch(): 
+        if db == DBNAME: isExist = True
+
+    # connect the database or create it if not exist
+    if isExist == True:
+        db = couch[DBNAME]
+    else:
+        couch.create(DBNAME)
 
     # @Todo: Include diff website if possible
     # @Todo: Handle Exception
