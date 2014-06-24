@@ -13,6 +13,10 @@ KEYWORDS = ["Data Analyst"]
 USERNAME = "student23@163.com" 
 PASSWORD = "jz4kFZRBi4"
 
+# Linkedin Job Post Scraping Reuslt
+# Title, Company, Address, Posting Time, Job Description 
+# Source URL, Keyword
+
 # CouchDB Paramter
 DBADDRESS = 'http://127.0.0.1:5984'
 DBNAME = "analytics"
@@ -30,11 +34,12 @@ def main():
     # connect the database
     db = couch[DBNAME]
 
+    # @Todo: Include diff website if possible
     # @Todo: Handle Exception
     # @Todo: How to get as much as possible given the Linkedin first 1000 result constraint
     # @Todo: Check duplicate result in CouchDB Database
     # @Todo: Set up a CouchDB in AWS
-    # @Todo: include source, link, keyword, time
+    # @Todo: include keyword, time
     for keyword in KEYWORDS:
         try:
             # function does not return value
@@ -108,10 +113,6 @@ def getJobDataByKeyword(keyword,database):
     browser.close()
         
 
-  
-
-
-
 
 def getInfo(html_content,infotype):
     soup = BeautifulSoup(html_content)
@@ -141,6 +142,7 @@ def getDictValue(mydict, keychain):
             return None
     return res
 
+
 def getJobData(browser, url):
     """ return structured data from linkedin job description web page """
     result = dict()
@@ -150,10 +152,15 @@ def getJobData(browser, url):
     soup = BeautifulSoup(html_content)
     browser.back()
 
+    # data source 
+    result["url"] = url
+    result["source"] = "Linkedin" 
+
+    # job title and company name
     result["title"] = soup.find("h1", class_="title").string
-    
     result["company"] = soup.find("h2", class_="sub-header").span.string
 
+    # job location related filed
     jobLocation = soup.find("h2", class_="sub-header").find("span", itemprop="jobLocation")
     result["location"] = jobLocation.find("span", itemprop="description").string
     result["address"] = jobLocation.find("meta", itemprop="addressLocality").attrs["content"]
@@ -165,6 +172,7 @@ def getJobData(browser, url):
     # jd keeps the markdown structure                   
     result["jd"] = str(soup.find("div", class_="description-module container"))
 
+    # remove the trailing space of each field
     for key in result: result[key] = result[key].strip()
 
     return result
