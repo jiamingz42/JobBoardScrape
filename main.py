@@ -11,6 +11,7 @@ import mechanize, json, time, heapq, re, couchdb
 
 # Linkedin Log in Parameter
 KEYWORDS = ["Data Analyst"]
+LOCATIONS = ["California","CA"]
 USERNAME = "student23@163.com" 
 PASSWORD = "jz4kFZRBi4"
 
@@ -28,7 +29,7 @@ PAGEINTERVAL = 2
 
 
 def main():
-
+    
     # connect the server
     couch = couchdb.Server(DBADDRESS)
 
@@ -39,32 +40,18 @@ def main():
 
     # connect the database or create it if not exist
     if isExist == True:
-        db = couch[DBNAME]
+        database = couch[DBNAME]
     else:
         couch.create(DBNAME)
-        db = couch[DBNAME]
+        database = couch[DBNAME]
 
-    # @Todo: Include diff website if possible
-    # @Todo: Handle Exception
-    # @Todo: How to get as much as possible given the Linkedin first 1000 result constraint
-    # @Todo: Check duplicate result in CouchDB Database
-    # @Todo: Set up a CouchDB in AWS
-    # @Todo: include, time
-    for keyword in KEYWORDS:
-        # function does not return value
-        getJobDataByKeyword(keyword, db)
-
-        
-        
-
-
-def getJobDataByKeyword(keyword,database):
-
+    # intial the browser object
     browser = mechanize.Browser()
-
     browser.set_handle_robots( False )
     browser.addheaders = [('User-agent', 'Firefox')]
 
+
+    # log in the linkedin
     browser.open("https://www.linkedin.com/")
     print "Open the Linkedin Login Page (Title: %s)" % browser.title()
 
@@ -74,8 +61,26 @@ def getJobDataByKeyword(keyword,database):
     browser.submit()
     print "Entered Username/Password (Title: %s)" % browser.title()
 
+    # @Todo: Include diff website if possible
+    # @Todo: Handle Exception
+    # @Todo: How to get as much as possible given the Linkedin first 1000 result constraint
+    # @Todo: Set up a CouchDB in AWS
+    for kw in KEYWORDS:
+        # for loc in LOCATIONS:
+            # search_term = "%s %s" % (kw,loc)
+            # print "search_term", search_term
+            # function does not return value
+        searchJobInLinkedin(browser, database, kw)
+
+    browser.close()
+    print "Script Reach its End"
+
+
+def searchJobInLinkedin(browser, database, keyword):
+
+    base = "https://www.linkedin.com"
+    browser.open(base)
     browser.select_form(nr = 0)
-    # multiple key words?
     browser.form['keywords'] = keyword
     resp = browser.submit()
     html_content = resp.get_data()
@@ -88,7 +93,6 @@ def getJobDataByKeyword(keyword,database):
         heapq.heappush(pageQueue, (page["pageNum"],page["pageURL"]))
         addedPage.add(page["pageNum"])
 
-    base = "https://www.linkedin.com"
     while pageQueue:
         pageNum, pageURL = heapq.heappop(pageQueue)
         
@@ -110,34 +114,39 @@ def getJobDataByKeyword(keyword,database):
         for job in jobs:
             if job.get("job") != None:
                 
-                # intial the result dictionary
-                result = dict()
-
-                # keyword
-                result["keyword"] = keyword
-
-                # date
-                result["date"] = job["job"]["fmt_postedDate"]
-                date_object = datetime.strptime(result["date"], "%b %d, %Y")
-                result["year"] = date_object.year
-                result["month"] = date_object.month
-                result["day"] = date_object.day
-
-                # source url
                 url = base + job['job']['actions']['link_viewJob_2']
                 
-                getJobData(browser, url, result)
+                pattern = re.compile("jobId=([0-9]+)&")
+                jobid = pattern.findall(url)[0]                
                 
-                # remove the trailing space of each field if value is string
-                for key in result: 
-                    value = result[key]
-                    if type(value) == str:
-                        result[key] = value.strip()
-                
-                # save the job info to couchdb 
-                database.save(result)
+                if len(database.query(map_fun("Linkedin", jobid))) == 0:
+                    result = dict()
+                    result["jobid"] = jobid
+                    result["url"] = url
+                    result["source"] = "Linkedin" 
+                    result["keyword"] = keyword
+                    database.save(result)
+                else:
+                    print 8888
+                break
 
-                print "Title: %s\nCompany: %s\n--------------" % (result["title"],result["company"])
+                #     result["date"] = job["job"]["fmt_postedDate"]
+                #     date_object = datetime.strptime(result["date"], "%b %d, %Y")
+                #     result["year"] = date_object.year
+                #     result["month"] = date_object.month
+                #     result["day"] = date_object.day
+
+                #     # getJobData(browser, url, result)
+
+                #     # remove the trailing space of each field if value is string
+                #     removeTrailing(result)
+
+                #     # save the job info to couchdb 
+                #     database.save(result)
+
+                #     # print "Title: %s\nCompany: %s\n--------------" % (result["title"],result["company"])
+                # else:
+                #     print "Found Existed Record in the Database"
                 
                 
                 time.sleep(JOBINTERVAL)
@@ -145,17 +154,13 @@ def getJobDataByKeyword(keyword,database):
         time.sleep(PAGEINTERVAL)
         break
 
-
-    browser.close()
-        
-
-
 def getInfo(html_content,infotype):
     soup = BeautifulSoup(html_content)
 
     # fix the weird bug of the retrieved json
     pattern = re.compile(":\\\\u002d1")
     code = pattern.sub(lambda match: ':"%s"' % match.group(), soup.code.string)
+
 
     # extract the job/page info based on the keychain
     keychain = {"page":["content","page","voltron_unified_search_json",
@@ -165,7 +170,6 @@ def getInfo(html_content,infotype):
     code = json.loads(code)
     result = getDictValue(code, keychain[infotype])
     return result
-
 
 def getDictValue(mydict, keychain):
     """ return the value in a nested dictionary using a order-list 
@@ -178,7 +182,6 @@ def getDictValue(mydict, keychain):
             return None
     return res
 
-
 def getJobData(browser, url, result):
     """ Funtion returns structured data from indivudal Linkedin job listing page """
     
@@ -186,10 +189,6 @@ def getJobData(browser, url, result):
     html_content = resp.get_data()
     soup = BeautifulSoup(html_content)
     browser.back()
-
-    # data source 
-    result["url"] = url
-    result["source"] = "Linkedin" 
 
     # job title and company name
     result["title"] = soup.find("h1", class_="title").string
@@ -201,12 +200,26 @@ def getJobData(browser, url, result):
     result["address"] = jobLocation.find("meta", itemprop="addressLocality").attrs["content"]
     result["region"] = jobLocation.find("meta", itemprop="addressRegion").attrs["content"]
     result["country"] = jobLocation.find("meta", itemprop="addressCountry").attrs["content"]
-
-    # add time
     
     # jd keeps the markdown structure                   
     result["jd"] = str(soup.find("div", class_="description-module container"))
 
+def map_fun(source, jobid):
+    """ wrapper for map function used by the couchdb to search whether an record
+    with a specific url exists """
+    
+    return """ function(doc) {
+                if (doc.source = "%s" && doc.jobid == "%s") {
+                    emit(doc.title, null);
+                }
+              } """ % (source, jobid)
+
+def removeTrailing(mydict):
+    """ remove the trailing space in the value of a dictionary """
+    for key in mydict: 
+        value = mydict[key]
+        if type(value) == str:
+            mydict[key] = value.strip()
 
 
 if __name__ == "__main__": main()
