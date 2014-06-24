@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from bs4 import BeautifulSoup
+from datetime import datetime
 import mechanize, json, time, heapq, re, couchdb
 
 ############################# 
@@ -14,12 +15,12 @@ USERNAME = "student23@163.com"
 PASSWORD = "jz4kFZRBi4"
 
 # Linkedin Job Post Scraping Reuslt
-# Title, Company, Address, Posting Time, Job Description 
-# Source URL, Keyword
+# Source URL will be used as the ID
+# Title, Company, Address, Keyword, Posting Time, Job Description
 
 # CouchDB Paramter
 DBADDRESS = 'http://127.0.0.1:5984'
-DBNAME = "analytics"
+DBNAME = "test" #"analytics"
 
 # Time Interval
 JOBINTERVAL = 0.2
@@ -33,14 +34,15 @@ def main():
 
     # check whether the db exists
     isExist = False
-    for db in couch(): 
-        if db == DBNAME: isExist = True
+    for database in couch: 
+        if database == DBNAME: isExist = True
 
     # connect the database or create it if not exist
     if isExist == True:
         db = couch[DBNAME]
     else:
         couch.create(DBNAME)
+        db = couch[DBNAME]
 
     # @Todo: Include diff website if possible
     # @Todo: Handle Exception
@@ -51,6 +53,8 @@ def main():
     for keyword in KEYWORDS:
         # function does not return value
         getJobDataByKeyword(keyword, db)
+
+        
         
 
 
@@ -102,14 +106,39 @@ def getJobDataByKeyword(keyword,database):
 
         # get the job info
         jobs = getInfo(html_content,"job")
+        
         for job in jobs:
             if job.get("job") != None:
+                
+                # intial the result dictionary
                 result = dict()
+
+                # keyword
                 result["keyword"] = keyword
-                url = job['job']['actions']['link_viewJob_2']
-                res = getJobData(browser, base + url, result)
-                print "Title: %s\nCompany: %s\n--------------" % (result["title"],result["company"])
+
+                # date
+                result["date"] = job["job"]["fmt_postedDate"]
+                date_object = datetime.strptime(result["date"], "%b %d, %Y")
+                result["year"] = date_object.year
+                result["month"] = date_object.month
+                result["day"] = date_object.day
+
+                # source url
+                url = base + job['job']['actions']['link_viewJob_2']
+                
+                getJobData(browser, url, result)
+                
+                # remove the trailing space of each field if value is string
+                for key in result: 
+                    value = result[key]
+                    if type(value) == str:
+                        result[key] = value.strip()
+                
+                # save the job info to couchdb 
                 database.save(result)
+
+                print "Title: %s\nCompany: %s\n--------------" % (result["title"],result["company"])
+                
                 
                 time.sleep(JOBINTERVAL)
 
@@ -178,10 +207,6 @@ def getJobData(browser, url, result):
     # jd keeps the markdown structure                   
     result["jd"] = str(soup.find("div", class_="description-module container"))
 
-    # remove the trailing space of each field
-    for key in result: result[key] = result[key].strip()
-
-    return result
 
 
 if __name__ == "__main__": main()
