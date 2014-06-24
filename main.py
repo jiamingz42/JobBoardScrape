@@ -39,13 +39,11 @@ def main():
     # @Todo: How to get as much as possible given the Linkedin first 1000 result constraint
     # @Todo: Check duplicate result in CouchDB Database
     # @Todo: Set up a CouchDB in AWS
-    # @Todo: include keyword, time
+    # @Todo: include, time
     for keyword in KEYWORDS:
-        try:
-            # function does not return value
-            getJobDataByKeyword(keyword, db)
-        except e:
-            print e
+        # function does not return value
+        getJobDataByKeyword(keyword, db)
+        
 
 
 def getJobDataByKeyword(keyword,database):
@@ -98,11 +96,12 @@ def getJobDataByKeyword(keyword,database):
         jobs = getInfo(html_content,"job")
         for job in jobs:
             if job.get("job") != None:
+                result = dict()
+                result["keyword"] = keyword
                 url = job['job']['actions']['link_viewJob_2']
-                res = getJobData(browser, base + url)
-                res["keyword"] = keyword
-                print "Title: %s\nCompany: %s\n--------------" % (res["title"],res["company"])
-                database.save(res)
+                res = getJobData(browser, base + url, result)
+                print "Title: %s\nCompany: %s\n--------------" % (result["title"],result["company"])
+                database.save(result)
                 
                 time.sleep(JOBINTERVAL)
 
@@ -143,10 +142,9 @@ def getDictValue(mydict, keychain):
     return res
 
 
-def getJobData(browser, url):
-    """ return structured data from linkedin job description web page """
-    result = dict()
-
+def getJobData(browser, url, result):
+    """ Funtion returns structured data from indivudal Linkedin job listing page """
+    
     resp = browser.open(url)
     html_content = resp.get_data()
     soup = BeautifulSoup(html_content)
