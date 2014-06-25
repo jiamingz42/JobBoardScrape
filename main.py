@@ -10,7 +10,7 @@ import mechanize, json, time, heapq, re, couchdb
 #############################
 
 # Linkedin Log in Parameter
-KEYWORDS = ["Data Analyst"]
+KEYWORDS = ["Data Analyst CA"]
 LOCATIONS = ["California","CA"]
 USERNAME = "student23@163.com" 
 PASSWORD = "jz4kFZRBi4"
@@ -46,20 +46,20 @@ def main():
         database = couch[DBNAME]
 
     # intial the browser object
-    browser = mechanize.Browser()
-    browser.set_handle_robots( False )
-    browser.addheaders = [('User-agent', 'Firefox')]
+browser = mechanize.Browser()
+browser.set_handle_robots( False )
+browser.addheaders = [('User-agent', 'Firefox')]
 
 
-    # log in the linkedin
-    browser.open("https://www.linkedin.com/")
-    print "Open the Linkedin Login Page (Title: %s)" % browser.title()
+# log in the linkedin
+browser.open("https://www.linkedin.com/")
+print "Open the Linkedin Login Page (Title: %s)" % browser.title()
 
-    browser.select_form(nr = 0)
-    browser.form['session_key'] = USERNAME 
-    browser.form['session_password'] = PASSWORD
-    browser.submit()
-    print "Entered Username/Password (Title: %s)" % browser.title()
+browser.select_form(nr = 0)
+browser.form['session_key'] = USERNAME 
+browser.form['session_password'] = PASSWORD
+browser.submit()
+print "Entered Username/Password (Title: %s)" % browser.title()
 
     # @Todo: Include diff website if possible
     # @Todo: Handle Exception
@@ -76,6 +76,8 @@ def main():
     print "Script Reach its End"
 
 
+
+
 def searchJobInLinkedin(browser, database, keyword):
 
     base = "https://www.linkedin.com"
@@ -85,9 +87,20 @@ def searchJobInLinkedin(browser, database, keyword):
     resp = browser.submit()
     html_content = resp.get_data()
     print "Searched Keyword \"%s\" (Title: %s)" % (keyword, browser.title())
+    
+
+    url = "https://www.linkedin.com/vsearch/j?type=jobs&keywords=Data+Analyst+CA&orig=GLHD&rsid=1814069061403653896615&pageKey=voltron_federated_search_internal_jsp&trkInfo=&search=Search"
+    https://www.linkedin.com/vsearch/j?type=jobs&keywords=Data+Analyst+CA
+    resp = browser.open(url)
+    html_content = resp.get_data()
 
     # inital the queue for page
+    # soup = BeautifulSoup(html_content)
+    # print soup 
+    # print "***"
     pages = getInfo(html_content,"page")
+    
+
     pageQueue, addedPage = [], set()
     for page in pages: 
         heapq.heappush(pageQueue, (page["pageNum"],page["pageURL"]))
@@ -125,30 +138,26 @@ def searchJobInLinkedin(browser, database, keyword):
                     result["url"] = url
                     result["source"] = "Linkedin" 
                     result["keyword"] = keyword
+
+                    result["date"] = job["job"]["fmt_postedDate"]
+                    date_object = datetime.strptime(result["date"], "%b %d, %Y")
+                    result["year"] = date_object.year
+                    result["month"] = date_object.month
+                    result["day"] = date_object.day
+
+                    getJobData(browser, url, result)
+
+                    # remove the trailing space of each field if value is string
+                    removeTrailing(result)
+                    
+                    # save the job info to couchdb
                     database.save(result)
+
+                    print "Title: %s\nCompany: %s\n--------------" % \
+                            (result["title"],result["company"])
                 else:
-                    print 8888
-                break
+                    print "Found Existed Record in the Database"
 
-                #     result["date"] = job["job"]["fmt_postedDate"]
-                #     date_object = datetime.strptime(result["date"], "%b %d, %Y")
-                #     result["year"] = date_object.year
-                #     result["month"] = date_object.month
-                #     result["day"] = date_object.day
-
-                #     # getJobData(browser, url, result)
-
-                #     # remove the trailing space of each field if value is string
-                #     removeTrailing(result)
-
-                #     # save the job info to couchdb 
-                #     database.save(result)
-
-                #     # print "Title: %s\nCompany: %s\n--------------" % (result["title"],result["company"])
-                # else:
-                #     print "Found Existed Record in the Database"
-                
-                
                 time.sleep(JOBINTERVAL)
 
         time.sleep(PAGEINTERVAL)
@@ -159,8 +168,13 @@ def getInfo(html_content,infotype):
 
     # fix the weird bug of the retrieved json
     pattern = re.compile(":\\\\u002d1")
-    code = pattern.sub(lambda match: ':"%s"' % match.group(), soup.code.string)
-
+    try:
+        code = pattern.sub(lambda match: ':"%s"' % match.group(), soup.code.string)
+    except TypeError:
+        print "infotype=%s" % infotype 
+        print type(soup.code)
+        print soup.code
+        raise TypeError
 
     # extract the job/page info based on the keychain
     keychain = {"page":["content","page","voltron_unified_search_json",
@@ -169,6 +183,7 @@ def getInfo(html_content,infotype):
                         "search", "results"]}
     code = json.loads(code)
     result = getDictValue(code, keychain[infotype])
+    
     return result
 
 def getDictValue(mydict, keychain):
@@ -220,6 +235,30 @@ def removeTrailing(mydict):
         value = mydict[key]
         if type(value) == str:
             mydict[key] = value.strip()
+
+def searchLink(keyword, pageNum=1, sort="R", zipcode=None, radius=None):
+    # Linkedin Job Search Link Structure (searchLinkConstruct)
+    # base: https://www.linkedin.com/vsearch/j?type=jobs
+    # keyword: &keywords=Data+Analyst+CA
+    # sorted: (earliest) &sortBy=DA  (recent) &sortBy=DD  (relevant) &sortBy=R
+    # zipcode and radius: &postalCode=94085&distance=50
+    # country: countryCode=us
+    # page: &page_num=2
+
+    # Linkedin will return all active job post based on this link
+    url = "https://www.linkedin.com/vsearch/j?type=jobs" 
+
+    url += "&keywords=%s" % keyword.replace(" ","+") # include keyword (required)
+    url += "&sortBy=%s" % sort # include sorted 
+
+    url += "&countryCode=us" # only search us
+    url += ("&postalCode=%d" % zipcode) if zipcode != None else "" 
+    url += ("&distance=%d" % radius) if (None not in (zipcode,radius)) else ""
+
+    url += "&page_num=%d" % pageNum
+
+    return url
+
 
 
 if __name__ == "__main__": main()
