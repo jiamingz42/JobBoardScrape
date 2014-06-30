@@ -16,7 +16,7 @@ Linkedin assign an unique id for every available job post. For example, the foll
 
 **getJobInfo** takes jobid as argument and return the job basic information, including job title, company, posted date and job descrption, in dictionary. verbose have the same functions as the getCompanyInfo function. 
 
-## searchJobLink(keyword, pageNum=1, sort="R", zipcode=None, radius=None)
+### searchJobLink(keyword, pageNum=1, sort="R", zipcode=None, radius=None)
 
 **searchLink** generate the query url for search a job based on the given keyword and other argument. Here is an example generated link: https://www.linkedin.com/vsearch/j?type=jobs&keywords=data+analyst&sortBy=R&countryCode=us&page_num=1
 
