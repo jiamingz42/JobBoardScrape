@@ -3,10 +3,12 @@
 
 from bs4 import BeautifulSoup
 import datetime
-import urllib2, re, json
+import urllib2, re, json, bs4
 
 def main():
-    getJobInfo("12880365", verbose=False)
+    # testing
+    res = getJobInfo("16351742", verbose=False)
+    
 
 def connectdb(couchdb, dbname):
     """ connect to the db if existed or create it """
@@ -27,8 +29,8 @@ def connectdb(couchdb, dbname):
  
 def getCompanyInfo(companyid, verbose=False):
 
-    result = {"companyid"   : companyid,
-              "companyURL"  : "https://www.linkedin.com/company/%s" % companyid}
+    result = {"companyid"   : str(companyid),
+              "companyURL"  : "https://www.linkedin.com/company/%s" % str(companyid)}
 
     html = urllib2.urlopen(result["companyURL"])
     soup = BeautifulSoup(html)
@@ -75,13 +77,18 @@ def getJobInfo(jobid, verbose=False):
         name = soup.find("h1", itemprop="title").text
         return name.strip()
     def getCompany(soup):
-        company = soup.find("a", class_="company").text
+        search = soup.find("h2", class_="sub-header")
+        company = search.span.text
         return company.strip()
     def getCompanyID(soup):
-        codeString  = soup.find("code", id="biz_feed-content").string
-        codeJSON    = json.loads(codeString)
-        companyID   = codeJSON["content"]["feed"]["currentActor"]["companyId"]
-        return unicode(companyID)
+        search = soup.find("h2", class_="sub-header")
+        if search.a == None:
+            companyid = None
+        else:
+            company_link = search.a.attrs["href"]
+            patterns = re.compile("/([0-9]+)")
+            companyid = patterns.findall(company_link)[0]
+        return unicode(companyid)
     def getLocation(soup):
         location = soup.find("span", itemprop="jobLocation").text
         return location.strip()
@@ -99,7 +106,14 @@ def getJobInfo(jobid, verbose=False):
         pos = now - deltaDate
         return {"year":2000, "month":1, "day":1}
     def getJobd(soup):
-        return unicode(soup.find("div",class_="description-module container"))
+        description = soup.find("div",class_="description-module container")
+        newsoup = BeautifulSoup(unicode(description))
+        jd = unicode("")
+        for element in newsoup.body.next_elements:
+            if (type(element) == bs4.element.NavigableString and
+                element.strip() != ""):
+                jd += unicode("\n") + element 
+        return jd.strip()
 
     funList = [("title",        getName         ),
                ("company",      getCompany      ),
@@ -108,22 +122,18 @@ def getJobInfo(jobid, verbose=False):
                ("date",         getDate         ),
                ("description",  getJobd         )]
 
-
     for (key, fun) in funList:
-        result[key] = fun(soup)
-
+        try:
+            result[key] = fun(soup)
+        except Exception as e:
+            print "JobID: %s; Key: %s" % (jobid, key)
+            raise e
 
     message = "\tTitle: %s, Company: %s"    
-    if verbose: print message % (result["title"],result["company"])
+    if verbose: print message % (repr(result["title"]),repr(result["company"]))
                          
     return result
 
-def removeTrailing(mydict):
-    """ remove the trailing space in the value of a dictionary """
-    for key in mydict: 
-        value = mydict[key]
-        if type(value) == str:
-            mydict[key] = value.strip()
 
 if __name__ == "__main__": main()
 
