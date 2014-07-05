@@ -24,12 +24,32 @@ The package contains several modules/scripts:
 ## Database
 
 This set of scripts work with CouchDB NoSQL databases. All data are stored seperately in the following four types of database:
-- **job**: Stores the job information scraped from the source website;
-- **company**: Store the company information scraped from the source website;
-- **log**: Store the metadata of invidual scraped job, like the started datetime and the ending datetime;
-- **mapping**: Store the mapping relation to standard the raw scraped data. For example, "Chicago City" and "Greater Chicago Area" will be standardized to "Chicago, IL", and this mapping relationship is stored in the **mapping** database. 
+- **Job**: Stores the job information scraped from the source website;
+- **Company**: Store the company information scraped from the source website;
+- **Log**: Store the metadata of invidual scraped job, like the started datetime and the ending datetime;
+- **Mapping**: Store the mapping relation to standard the raw scraped data. For example, "Chicago City" and "Greater Chicago Area" will be standardized to "Chicago, IL", and this mapping relationship is stored in the **mapping** database. 
 
-### job
+### Database: Job
+**Data Strucutre**
+``` 
+{
+   "_id": "5571a44cbcc9b9b10d5fb1031b0012ad",
+   "_rev": "1-8bb9faa3f15f1d5bb60e3a8dc1cb06ab",
+   "description": "... Work with Finance Department ...",
+   "title": "Nonprofit Quality & Compliance Manager",
+   "jobid": 16178050,
+   "companyid": "412913",
+   "source": "Linkedin",
+   "location": "Cincinnati, Ohio",
+   "date": {
+       "month": 6,
+       "day": 8,
+       "year": 2014
+   },
+   "type": "job",
+   "company": "Cincinnati Union Bethel"
+}
+```
 
 ## Module/Script
 
