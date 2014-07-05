@@ -2,6 +2,10 @@
 
 I wrote this script to practise my web scraping skills, and to conduct an analysis about the characteristics of the demand of analytical positions. 
 
+**Strcuture**
+This package has three components: one configure file (config.json), one module (linkedin.py) and several executable scripts. All constant variables that are be used by multiple scripts are store in the config file; all functions/classes that are used by multiple are stored in the module; each executable script is used to performance a specific task. 
+
+
 The package contains several modules/scripts:
 - linkedin: linkedin module is used to scrape information from job listing boards and company profile page.
 - location: map the raw location to standard location format using the Google Geocoded service from Python package GeoPy
