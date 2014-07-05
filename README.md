@@ -50,6 +50,8 @@ This set of scripts work with CouchDB NoSQL databases. All data are stored seper
    "company": "Cincinnati Union Bethel"
 }
 ```
+### Database: Mapping
+**Location Mapping: Data Structure**
 
 ## Module/Script
 
