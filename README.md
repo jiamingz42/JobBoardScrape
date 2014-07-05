@@ -8,10 +8,16 @@ The package contains several modules/scripts:
 
 ## Dependency
 
-- couchdb
+- **BeautifulSoup**
+  - Install: http://www.crummy.com/software/BeautifulSoup/
+  - Documentation: http://www.crummy.com/software/BeautifulSoup/bs4/doc/
+- **mechanize**
+  - Install: https://pypi.python.org/pypi/mechanize/
+  - Documentation: http://wwwsearch.sourceforge.net/mechanize/
+- **couchdb**
   - Install: https://pypi.python.org/pypi/CouchDB/0.9
   - Documentation: https://pythonhosted.org/CouchDB/
-- GeoPy
+- **GeoPy**
   - Install: https://pypi.python.org/pypi/geopy
   - Documentation: http://geopy.readthedocs.org/en/latest/index.html#
 
