@@ -1,40 +1,65 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import urllib2, json,couchdb
+import couchdb, time
 import linkedin as lk
-from bs4 import BeautifulSoup
 
-# CouchDB Paramter
-DBADDRESS = 'http://127.0.0.1:5984'
-DBNAME = "company" 
+############################# 
+## CONFIGURATION PARAMETER ##
+#############################
+
+config = lk.config("config.json")
+
+DBADDRESS = config["database"]["couchdb_address"]
+JOBDBNAME = config["database"]["job_dbname"]
+COMDBNAME = config["database"]["company_dbname"]
+LOGDBNAME = config["database"]["log_dbname"]
 
 def main():
-    # add name later
 
     # connect the server/database
     couch = couchdb.Server(DBADDRESS)
-    database = lk.connectdb(couch, DBNAME)
+    jobdb = lk.connectdb(couch, JOBDBNAME)
+    comdb = lk.connectdb(couch, COMDBNAME)
     
-    companys = ["1035"]
+    # obtain unique compnayid from job database
+    uniComViewFromJob = getUniqueCompany(jobdb)
+    uniComSetFromJob = viewToSet(uniComViewFromJob)
 
-    for companyid in companys:
-        result = lk.searchCompanyInLinkedin(companyid)
-        if len(database.query(map_fun("Linkedin", companyid))) == 0:
-            database.save(result)
-        print result["Name"]
+    # obtain unique compnayid from company database
+    uniComViewFromCom = getUniqueCompany(comdb)
+    uniComSetFromCom = viewToSet(uniComViewFromCom)
+    
+    # scrape company that occur in job db but not in company db
+    queue = uniComSetFromJob.difference(uniComSetFromCom)
+    for companyid in queue:
+        comInfo = lk.getCompanyInfo(companyid)
+        comdb.save(comInfo)
+        print comInfo["Name"]
+        time.sleep(0.5)
+    
+
+def viewToSet(view):
+        result = set()
+        for row in view:
+            key = row.key
+            result.add(key)
+        return result  
+
+def getUniqueCompany(jobdb):
+    map_fun = """ function(doc) {
+        if (doc.companyid) {
+            emit(doc.companyid, 1);
+        }
+    } """
+    reduce_fun = """ function(key, values){
+        return sum(values);
+    } """
+    view = jobdb.query(map_fun, reduce_fun=reduce_fun, group_level=1)
+    return view
 
 
-map_fun = lambda source, companyid: """ 
-            function(doc) {
-                if (doc.source = "%s" && doc.companyid == "%s") {
-                    emit(doc.title, null);
-                }
-            } """ % (source, companyid)
-
-
-
-main()
+if __name__ == "__main__": main()
 
 
 
