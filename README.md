@@ -6,6 +6,11 @@ The package contains several modules/scripts:
 - linkedin: linkedin module is used to scrape information from job listing boards and company profile page.
 - location: map the raw location to standard location format using the Google Geocoded service from Python package GeoPy
 
+## Dependency
+
+- GeoPy
+  - Documentation: http://geopy.readthedocs.org/en/latest/index.html#
+
 ## Linkedin Package
 
 ### getCompanyInfo(companyid, verbose=False)
