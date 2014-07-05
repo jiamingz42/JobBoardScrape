@@ -21,6 +21,15 @@ The package contains several modules/scripts:
   - Install: https://pypi.python.org/pypi/geopy
   - Documentation: http://geopy.readthedocs.org/en/latest/index.html#
 
+## Database
+
+This set of scripts work with CouchDB NoSQL databases. All data are stored seperately in the following four types of database:
+- **job**: Stores the job information scraped from the source website;
+- **company**: Store the company information scraped from the source website;
+- **log**: Store the metadata of invidual scraped job, like the started datetime and the ending datetime;
+- **mapping**: Store the mapping relation to standard the raw scraped data. For example, "Chicago City" and "Greater Chicago Area" will be standardized to "Chicago, IL", and this mapping relationship is stored in the **mapping** database. 
+
+
 ## Linkedin Package
 
 ### getCompanyInfo(companyid, verbose=False)
