@@ -4,6 +4,7 @@ I wrote this script to practise my web scraping skills, and to conduct an analys
 
 The package contains several modules:
 - linkedin: linkedin module is used to scrape information from job listing boards and company profile page.
+- location: map the raw location to standard location format using the Google Geocoded service from Python package GeoPy
 
 ## Functions
 
