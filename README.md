@@ -115,6 +115,11 @@ Every job search link starts with "https://www.linkedin.com/vsearch/j?type=jobs"
 - "zipcode=" can be used to specify the searched regions
 - "radius=" can be used to specify the radius of the searched region when zipcode is specified
 - "pageNum=" can be used to the specify the page num of the search result. Note that Linkedin only make the first 40 pages avaialble to normal user. 
+
+### Script: company.py
+
+company.py scrapes the information of those companies that occur in the job database but not yet stored in the company database. 
+
  
 ### Script: location.py
 
