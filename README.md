@@ -1,8 +1,18 @@
 ## Summary
 
-linkedin module is used to scrape information from job listing boards and company profile page.
+I wrote this script to practise my web scraping skills, and to conduct an analysis about the characteristics of the demand of analytical positions. 
 
-## Functions
+The package contains several modules/scripts:
+- linkedin: linkedin module is used to scrape information from job listing boards and company profile page.
+- location: map the raw location to standard location format using the Google Geocoded service from Python package GeoPy
+
+## Dependency
+
+- GeoPy
+  - Install: https://pypi.python.org/pypi/geopy
+  - Documentation: http://geopy.readthedocs.org/en/latest/index.html#
+
+## Linkedin Package
 
 ### getCompanyInfo(companyid, verbose=False)
 
@@ -26,3 +36,7 @@ Every job search link starts with "https://www.linkedin.com/vsearch/j?type=jobs"
 - "zipcode=" can be used to specify the searched regions
 - "radius=" can be used to specify the radius of the searched region when zipcode is specified
 - "pageNum=" can be used to the specify the page num of the search result. Note that Linkedin only make the first 40 pages avaialble to normal user. 
+ 
+## location
+
+Location information scraped from the source website are usually not in a standard format. For example, **"Chicago, IL"** or **"The Greater Chicago Area"** refer to the same area but are typed in different format. The purpose of the location.py is to standardize the location into (State, County, City) format by using Google geocoded service. 
