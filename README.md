@@ -1,6 +1,9 @@
 ## Summary
 
-linkedin module is used to scrape information from job listing boards and company profile page.
+I wrote this script to practise my web scraping skills, and to conduct an analysis about the characteristics of the demand of analytical positions. 
+
+The package contains several modules:
+- linkedin: linkedin module is used to scrape information from job listing boards and company profile page.
 
 ## Functions
 
