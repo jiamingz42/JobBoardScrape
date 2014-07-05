@@ -8,6 +8,9 @@ The package contains several modules/scripts:
 
 ## Dependency
 
+- couchdb
+  - Install: https://pypi.python.org/pypi/CouchDB/0.9
+  - Documentation: https://pythonhosted.org/CouchDB/
 - GeoPy
   - Install: https://pypi.python.org/pypi/geopy
   - Documentation: http://geopy.readthedocs.org/en/latest/index.html#
