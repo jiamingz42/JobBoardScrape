@@ -39,4 +39,4 @@ Every job search link starts with "https://www.linkedin.com/vsearch/j?type=jobs"
  
 ## location
 
-Location information scraped from the source website are usually not in a standard format. For example, "Chicago, IL" or "The Greater Chicago Area" refer to the same area but are typed in different format. The purpose of the location.py is to standardize the location into (State, County, City) format using Google geocoded service. 
+Location information scraped from the source website are usually not in a standard format. For example, **"Chicago, IL"** or **"The Greater Chicago Area"** refer to the same area but are typed in different format. The purpose of the location.py is to standardize the location into (State, County, City) format by using Google geocoded service. 
