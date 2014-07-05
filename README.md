@@ -54,6 +54,38 @@ This set of scripts work with CouchDB NoSQL databases. All data are stored seper
    "company": "Cincinnati Union Bethel"
 }
 ```
+### Database: Company
+**Data Strucutre**
+```
+{
+   "_id": "ba25d89e51e2e89c3f4d455edb707ace",
+   "_rev": "2-131dcd331da95277f228e069baf1ada4",
+   "name": "Microsoft",
+   "companyid": "1035",
+   "url": "https://www.linkedin.com/company/1035",
+   "ctype": "Public Company",
+   "founded": "1975",
+   "specialties": [
+       "Business Software",
+       "Design Tools",
+       "Developer Tools",
+       "Entertainment Products",
+       "Hardware",
+       "Home & Educational Software",
+       "Tablets",
+       "Search",
+       "Advertising",
+       "Servers",
+       "Windows Operating System",
+       "Windows Applications & Platforms",
+       "Smartphones",
+       "Cloud Computing"
+   ],
+   "industry": "Computer Software",
+   "size": "10,001+ employees"
+}
+```
+
 ### Database: Mapping
 **Location Mapping: Data Structure**
 
@@ -83,6 +115,11 @@ Every job search link starts with "https://www.linkedin.com/vsearch/j?type=jobs"
 - "zipcode=" can be used to specify the searched regions
 - "radius=" can be used to specify the radius of the searched region when zipcode is specified
 - "pageNum=" can be used to the specify the page num of the search result. Note that Linkedin only make the first 40 pages avaialble to normal user. 
+
+### Script: company.py
+
+company.py scrapes the information of those companies that occur in the job database but not yet stored in the company database. 
+
  
 ### Script: location.py
 
