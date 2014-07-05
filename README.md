@@ -2,7 +2,7 @@
 
 I wrote this script to practise my web scraping skills, and to conduct an analysis about the characteristics of the demand of analytical positions. 
 
-**Strcuture**
+###**Strcuture**
 This package has three components: one configure file (config.json), one module (linkedin.py) and several executable scripts. All constant variables that are be used by multiple scripts are store in the config file; all functions/classes that are used by multiple are stored in the module; each executable script is used to performance a specific task. 
 
 
