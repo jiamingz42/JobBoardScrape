@@ -2,7 +2,7 @@
 
 I wrote this script to practise my web scraping skills, and to conduct an analysis about the characteristics of the demand of analytical positions. 
 
-The package contains several modules:
+The package contains several modules/scripts:
 - linkedin: linkedin module is used to scrape information from job listing boards and company profile page.
 - location: map the raw location to standard location format using the Google Geocoded service from Python package GeoPy
 
@@ -32,3 +32,5 @@ Every job search link starts with "https://www.linkedin.com/vsearch/j?type=jobs"
 - "pageNum=" can be used to the specify the page num of the search result. Note that Linkedin only make the first 40 pages avaialble to normal user. 
  
 ## location
+
+Location information scraped from the source website are usually not in a standard format. For example, "Chicago, IL" or "The Greater Chicago Area" refer to the same area but are typed in different format. The purpose of the location.py is to standardize the location into (State, County, City) format using Google geocoded service. 
