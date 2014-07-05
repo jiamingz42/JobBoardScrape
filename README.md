@@ -6,7 +6,7 @@ The package contains several modules:
 - linkedin: linkedin module is used to scrape information from job listing boards and company profile page.
 - location: map the raw location to standard location format using the Google Geocoded service from Python package GeoPy
 
-## Functions
+## Linkedin Package
 
 ### getCompanyInfo(companyid, verbose=False)
 
@@ -30,3 +30,5 @@ Every job search link starts with "https://www.linkedin.com/vsearch/j?type=jobs"
 - "zipcode=" can be used to specify the searched regions
 - "radius=" can be used to specify the radius of the searched region when zipcode is specified
 - "pageNum=" can be used to the specify the page num of the search result. Note that Linkedin only make the first 40 pages avaialble to normal user. 
+ 
+## location
