@@ -9,6 +9,7 @@ The package contains several modules/scripts:
 ## Dependency
 
 - GeoPy
+  - Install: https://pypi.python.org/pypi/geopy
   - Documentation: http://geopy.readthedocs.org/en/latest/index.html#
 
 ## Linkedin Package
