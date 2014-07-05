@@ -29,6 +29,7 @@ This set of scripts work with CouchDB NoSQL databases. All data are stored seper
 - **log**: Store the metadata of invidual scraped job, like the started datetime and the ending datetime;
 - **mapping**: Store the mapping relation to standard the raw scraped data. For example, "Chicago City" and "Greater Chicago Area" will be standardized to "Chicago, IL", and this mapping relationship is stored in the **mapping** database. 
 
+### job
 
 ## Linkedin Package
 
