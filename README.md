@@ -54,6 +54,38 @@ This set of scripts work with CouchDB NoSQL databases. All data are stored seper
    "company": "Cincinnati Union Bethel"
 }
 ```
+### Database: Company
+**Data Strucutre**
+```
+{
+   "_id": "ba25d89e51e2e89c3f4d455edb707ace",
+   "_rev": "2-131dcd331da95277f228e069baf1ada4",
+   "name": "Microsoft",
+   "companyid": "1035",
+   "url": "https://www.linkedin.com/company/1035",
+   "ctype": "Public Company",
+   "founded": "1975",
+   "specialties": [
+       "Business Software",
+       "Design Tools",
+       "Developer Tools",
+       "Entertainment Products",
+       "Hardware",
+       "Home & Educational Software",
+       "Tablets",
+       "Search",
+       "Advertising",
+       "Servers",
+       "Windows Operating System",
+       "Windows Applications & Platforms",
+       "Smartphones",
+       "Cloud Computing"
+   ],
+   "industry": "Computer Software",
+   "size": "10,001+ employees"
+}
+```
+
 ### Database: Mapping
 **Location Mapping: Data Structure**
 
