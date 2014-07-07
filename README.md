@@ -92,6 +92,7 @@ This set of scripts work with CouchDB NoSQL databases. All data are stored seper
 ### Database: Log
 
 **Data Strucutre**
+```
 {
     doctype: "scrape",
     scrape_id: "00000001",
@@ -106,7 +107,7 @@ This set of scripts work with CouchDB NoSQL databases. All data are stored seper
             }
     finish = [job1_id, jobd2_id, jobd3_id ...]
 }
-'''
+```
 
 ## Module/Script
 
