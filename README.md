@@ -89,6 +89,25 @@ This set of scripts work with CouchDB NoSQL databases. All data are stored seper
 ### Database: Mapping
 **Location Mapping: Data Structure**
 
+### Database: Log
+
+**Data Strucutre**
+{
+    doctype: "scrape",
+    scrape_id: "00000001",
+    start_datetime: '2014-07-04 17:12:50.226416' # str(datetime.today())
+    end_datetime: '2014-07-04 17:12:50.226416' # str(datetime.today())
+    queue = {
+                "data analyst": {
+                                    "15213":[job1_id,job2_id],
+                                    "15214":[job1_id,job2_id],
+                                }
+                "data science": {"00000":[job1_id,job2_id]}
+            }
+    finish = [job1_id, jobd2_id, jobd3_id ...]
+}
+'''
+
 ## Module/Script
 
 ### Module: Linkedin Package
