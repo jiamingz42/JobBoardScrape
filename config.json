@@ -1,0 +1,28 @@
+{   
+    
+    "database": {
+        "couchdb_address": "http://127.0.0.1:5984",
+        "job_dbname": "job",
+        "company_dbname": "company2",
+        "log_dbname": "log",
+        "mapping_dbname": "mapping"
+    },
+
+    "linkedinAccount": {
+        "student4562@163.com":"ZTYtQBiYu9fDR4"
+    },
+
+    "auto_proxy": true,
+
+    "http_proxy": [
+        "216.189.101.121:7808",
+        "107.18.35.253:8080",
+        "198.23.251.248:8089",
+        "64.19.28.6:8080"
+    ],
+
+    "current_scrape": "7d195c60f443bd964cf03f7caf000d5e",
+
+    "googlemap_apikey": "AIzaSyDFNFsDDBXA8GD4aHMMPsfTcRCDFrh9dQk"
+
+}

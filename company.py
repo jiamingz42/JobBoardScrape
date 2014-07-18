@@ -24,27 +24,20 @@ def main():
     
     # obtain unique compnayid from job database
     uniComViewFromJob = getUniqueCompany(jobdb)
-    uniComSetFromJob = viewToSet(uniComViewFromJob)
+    uniComSetFromJob = lk.viewToSet(uniComViewFromJob)
 
     # obtain unique compnayid from company database
     uniComViewFromCom = getUniqueCompany(comdb)
-    uniComSetFromCom = viewToSet(uniComViewFromCom)
+    uniComSetFromCom = lk.viewToSet(uniComViewFromCom)
     
     # scrape company that occur in job db but not in company db
     queue = uniComSetFromJob.difference(uniComSetFromCom)
+    print "%d Companies to Process" % len(queue)
     for companyid in queue:
         comInfo = lk.getCompanyInfo(companyid)
         comdb.save(comInfo)
-        print comInfo["Name"]
-        time.sleep(0.5)
-    
-
-def viewToSet(view):
-        result = set()
-        for row in view:
-            key = row.key
-            result.add(key)
-        return result  
+        print comInfo["name"] 
+        
 
 def getUniqueCompany(jobdb):
     map_fun = """ function(doc) {

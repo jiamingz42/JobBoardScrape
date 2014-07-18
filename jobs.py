@@ -12,91 +12,76 @@ import mechanize, json, time, heapq, re, couchdb, csv, urllib2, random
 ## CONFIGURATION PARAMETER ##
 #############################
 
-# Linkedin Log in Parameter
-KEYWORDS = "Data Analyst"
-LOCATIONS = ["California","CA"]
-USERNAME = "student4561@163.com" 
-PASSWORD = "VoHa6DBAgPgf2h"
+config = lk.config("config.json")
 
-# CouchDB Paramter
-DBADDRESS = 'http://127.0.0.1:5984'
+''' Exact Search Word 
+      (1) Data Engineer; 
+      (2) Data Science; 
+      (3) Data Scientist; 
+      (4) Data Modeler; 
+      (5) Data Architect;
+      (6) Statistical Analyst
+      (7) Machine Learning
+    Multiple Region Search
+    (1) Data Mining (CareFusion, Microsoft, Amazon, Rest)
+    (2) Big Data (Developer, IBM, Deloitte, CyberCoders, Teradata, Hadoop, Senior, microsoft)
 
-''' each complete scrape job will be store the following info into a doc
-{
-    doctype: "scrape",
-    scrape_id: "00000001",
-    start_datetime: '2014-07-04 17:12:50.226416' # str(datetime.today())
-    end_datetime: '2014-07-04 17:12:50.226416' # str(datetime.today())
-    queue = {
-                "data analyst": {
-                                    "15213":[job1_id,job2_id],
-                                    "15214":[job1_id,job2_id],
-                                }
-                "data science": {"15213":[job1_id,job2_id]}
-            }
-    finish = [job1_id, jobd2_id, jobd3_id ...]
-}
+    (1) Data Analyst
+
+    (3) Business Intelligence
 '''
 
 
+KEYWORDS = ''
+
+# CouchDB Paramter
+DBADDRESS = config["database"]["couchdb_address"]
+JOBDBNAME = config["database"]["job_dbname"]
+LOGDBNAME = config["database"]["log_dbname"]
+
 def main():
-    
-    # connect the server
-    couch = couchdb.Server(DBADDRESS)
-    db = lk.connectdb(couch, "analytics2")
-    log = lk.connectdb(couch, "log")
 
-    # username and password
-    users = {"student23@163.com":"jz4kFZRBi4",
-             "student4561@163.com":"VoHa6DBAgPgf2h",
-             "student4562@163.com":"ZTYtQBiYu9fDR4",
-             "student4563@163.com":"ramj63JvVy"}
-
+    users = config["linkedinAccount"]
     for user in users:
-        try: webscrape(user, users[user], db, log, "0001", True)
-        except: pass
-        
+        webscrape(user, users[user], False, True)
+
     
-def webscrape(user, pw, db, log, scrapeid="0001", verbose=False):
+    
+def webscrape(user, pw, loopzip=True, verbose=False):
     """ db is the database used to store the job scraping result
         log is the database used to store the status of the web scraping
     """
-    # scrape_doc records the scrape job status
-    scrape_docid = getScrapeDoc(log, scrapeid)
-    scrape_doc = log[scrape_docid]
 
     # intial the browser object
-    browser = ExtendedBrowser()
+    browser = lk.ExtendedBrowser()
     browser.init()
     browser.login("linkedin", user, pw, True)
 
     # Linkedin only make the first 1000 result available to users
     # search keyword with different zipcode to get around this limitation
-    zipList = getZipcodeList(log)
-    zipListLen = len(zipList)
-    zipList = random.sample(zipList,zipListLen)
+    if loopzip:
+        zipList = getZipcodeList(browser.logdb)
+        zipListLen = len(zipList)
+        random.seed(2)
+        zipListLen = random.sample(zipList,zipListLen)
+    else:
+        zipList = ["00000"]
 
     for zipcode in zipList:
-        print "%.2f%%" % (float(zipList.index(zipcode))/zipListLen * 100)
-        # checkQueue return false 
-        # if the current combination of kw and zipcode is not searched
-        if checkQueue(log, scrape_doc, KEYWORDS, zipcode) == False:
-            # if verbose: print "(%s,%s) has not been searched" % (KEYWORDS, zipcode)
-            jobIdList = lk.getJobIDByKeyword(browser, KEYWORDS, zipcode, 50, True)  
-            updateQueue(log, scrape_doc, KEYWORDS, zipcode, jobIdList)
-        else:
-            # if verbose: print "(%s,%s) has been searched" % (KEYWORDS, zipcode)
-            jobIdList = scrape_doc["queue"][KEYWORDS][zipcode]
+
+        jobids_dict = lk.getJobIDByKeyword(browser, KEYWORDS, zipcode, 25, True)
+        
+        jobids = []
+        for pageNum in jobids_dict: jobids.extend(jobids_dict[pageNum])
 
         # obtain the complete info for each given jobid
-        for jobid in jobIdList:
-            if checkFinish(log, scrape_doc,jobid) == False:
+        for jobid in jobids:
+            if jobid not in browser.scrapedoc["finish"]:
                 result = lk.getJobInfo(jobid)
-                updateFinish(log, scrape_doc, jobid)
-                db.save(result)
-                if verbose: print "\tAdd Job: ", unicode(result["title"][:50]).encode("utf-8")
-                time.sleep(1)
-
+                if verbose: print "\tAdd Job: ", unicode(result["title"][:30]).encode("utf-8")
+                browser.jobdb.save(result)
+                browser.scrapedoc["finish"].append(jobid)
+                browser.updateLog()
                  
     browser.close()
     print "Script Reach its End"
@@ -141,68 +126,6 @@ def getZipcodeList(logdb):
         else: zipcodeList.extend(median_zipcodes)
         
     return zipcodeList
-    
-def getScrapeDoc(logdb, scrapeid):
-
-    map_fun = lambda scrapeid:"""
-    function(doc) {
-        if (doc.doctype == "scrape" && doc.scrape_id == "%s") {
-            emit(doc.scrapeid, doc);
-        }
-    } """ % scrapeid
-
-    view = logdb.query(map_fun(scrapeid))
-    viewLen = len(view)
-    
-    # if the input scrapeid does not exist
-    if viewLen == 0:
-        # create one
-        doc = {"doctype": "scrape", 
-               "scrape_id": str(scrapeid),
-               "start_datetime": str(datetime.today())}
-        logdb.save(doc)
-
-        # update the view
-        view = logdb.query(map_fun(scrapeid))
-        viewLen = len(view)
-
-    if viewLen == 1:
-        for row in view: doc = row
-    else:
-        raise Exception("Duplicate ScrapeId")
-
-    return doc.id
-
-class ExtendedBrowser(mechanize.Browser):
-    def init(self):
-        self.set_handle_robots( False )
-        self.addheaders = [('User-agent', 'Firefox')]
-
-    def login(self, website, user, password, shouldPrint=False):
-        sites = {"linkedin": "http://www.linkedin.com",
-                 "facebook": "http://www.facebook.com"}
-
-        URL = sites[website]
-        
-        self.open(URL)
-        if shouldPrint:
-            print "Open URL: %s" % URL
-        
-        self.select_form(nr = 0)
-        self.form['session_key'] = user 
-        self.form['session_password'] = password
-        self.submit()
-
-        if shouldPrint:
-            print "Login As %s (Title: %s)" % (user, self.title())
-
-    def get_data(self,url,goback=False):
-        resp = self.open(url)
-        html = resp.get_data()
-
-        if goback: self.back()
-
-        return html
 
 
 
