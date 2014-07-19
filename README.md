@@ -15,13 +15,13 @@ The package contains several modules/scripts:
 1. Install CouchDB
 2. Install Python Library listed in the Dependency Section
 3. Modify the config.json files.
--- Database
--- Linkedin Account Info
+  - Database
+  - Linkedin Account Info
 4. Modified the search keyword in jobs.py
 5. Execute jobs.py, company.py and location.py in order
--- jobs.py is used to scrape the job info;
--- company.py is used to scrape company info if the company appear in the job post
--- location is used to standard the location info using Google Geocoded service.
+  - jobs.py is used to scrape the job info;
+  - company.py is used to scrape company info if the company appear in the job post
+  - location is used to standard the location info using Google Geocoded service.
 
 
 ## Dependency
